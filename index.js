@@ -3,12 +3,12 @@ import { configDotenv } from "dotenv";
 import express from "express";
 import { GoogleGenAI } from "@google/genai";
 configDotenv();
-const port = 4000 || process.env.PORT;
+const port =  process.env.PORT || 4000;
 const app = express();
 
 app.use(cors({
     origin: [
-        "http://localhost:5173/"
+        "http://localhost:5173"
     ]
 }));
 app.use(express.json());
