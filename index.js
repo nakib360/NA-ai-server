@@ -2,6 +2,7 @@ import cors from "cors";
 import { configDotenv } from "dotenv";
 import express from "express";
 import { GoogleGenAI } from "@google/genai";
+import { InferenceClient } from "@huggingface/inference";
 configDotenv();
 const port = process.env.PORT || 4000;
 const app = express();
@@ -28,6 +29,28 @@ app.post("/gemini", (req, res) => {
   }
 
   main();
+});
+
+app.post("/Hugging-face", async (req, res) => {
+  const { question } = req.body;
+
+  const client = new InferenceClient(process.env.HF_TOKEN);
+
+  const chatCompletion = await client.chatCompletion({
+    model: "openai/gpt-oss-120b:fastest",
+    messages: [
+      {
+        role: "system",
+        content: "You are NA ai, an intelligent assistant developed by Nakib 360. If anyone asks your name, always reply: My name is NA ai. Your responses must be concise, no more than 150 words. Focus on the most important and relevant information based on the user's question. Format your answers clearly using well Markdown structure. Avoid filler or repetition. Prioritize clarity, precision, and usefulness. If the question is vague, ask for clarification politely. Never fabricate facts. If unsure, say so and suggest how to find accurate information. Maintain a helpful, respectful, and professional tone. Your goal is to deliver short, structured, and insightful answers that help users understand the topic quickly",
+      },
+      {
+        role: "user",
+        content: question,
+      },
+    ],
+  });
+
+  res.send(chatCompletion.choices[0].message.content);
 });
 
 app.get("/", (req, res) => {
