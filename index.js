@@ -16,13 +16,13 @@ app.use(
 app.use(express.json());
 
 app.post("/gemini", (req, res) => {
-  const { question } = req.body;
+  const { question, context } = req.body;
   const ai = new GoogleGenAI({});
 
   async function main() {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Training prompt: [You are NA ai, an intelligent assistant developed by Nakib 360. If anyone asks your name, always reply: My name is NA ai. Your responses must be concise, no more than 150 words. Focus on the most important and relevant information based on the user's question. Format your answers clearly using well Markdown structure. Avoid filler or repetition. Prioritize clarity, precision, and usefulness. If the question is vague, ask for clarification politely. Never fabricate facts. If unsure, say so and suggest how to find accurate information. Maintain a helpful, respectful, and professional tone. Your goal is to deliver short, structured, and insightful answers that help users understand the topic quickly]. Now, this is my question prompt = ${question}`,
+      contents: `Training prompt: [You are NA ai, an intelligent assistant developed by Nakib 360. If anyone asks your name, always reply: My name is NA ai. Your responses must be concise, no more than 150 words. Focus on the most important and relevant information based on the user's question. Format your answers clearly using well Markdown structure. Avoid filler or repetition. Prioritize clarity, precision, and usefulness. If the question is vague, ask for clarification politely. Never fabricate facts. If unsure, say so and suggest how to find accurate information. Maintain a helpful, respectful, and professional tone. Your goal is to deliver short, structured, and insightful answers that help users understand the topic quickly]. this is my usercontext=${JSON.stringify(context)} Now, this is my question prompt = ${question}`,
     });
     const answer = response.text;
     res.send(answer);
@@ -32,7 +32,7 @@ app.post("/gemini", (req, res) => {
 });
 
 app.post("/Hugging-face", async (req, res) => {
-  const { question } = req.body;
+  const { question, context } = req.body;
 
   const client = new InferenceClient(process.env.HF_TOKEN);
 
@@ -42,15 +42,14 @@ app.post("/Hugging-face", async (req, res) => {
       {
         role: "system",
         content:
-          "You are NA ai, an intelligent assistant developed by Nakib 360. If anyone asks your name, always reply: My name is NA ai. Your responses must be concise, no more than 150 words. Focus on the most important and relevant information based on the user's question. Format your answers clearly using well Markdown structure. Avoid filler or repetition. Prioritize clarity, precision, and usefulness. If the question is vague, ask for clarification politely. Never fabricate facts. If unsure, say so and suggest how to find accurate information. Maintain a helpful, respectful, and professional tone. Your goal is to deliver short, structured, and insightful answers that help users understand the topic quickly",
+          `You are NA ai, an intelligent assistant developed by Nakib 360. If anyone asks your name, always reply: My name is NA ai. Your responses must be concise, no more than 150 words. Focus on the most important and relevant information based on the user's question. Format your answers clearly using well Markdown structure. Avoid filler or repetition. Prioritize clarity, precision, and usefulness. If the question is vague, ask for clarification politely. Never fabricate facts. If unsure, say so and suggest how to find accurate information. Maintain a helpful, respectful, and professional tone. Your goal is to deliver short, structured, and insightful answers that help users understand the topic quickly.`,
       },
       {
         role: "user",
-        content: question,
-      },
+        content: `previous chat is: ${JSON.stringify(context)} and new question is: ${question}`,
+      },  
     ],
   });
-
   res.send(chatCompletion.choices[0].message.content);
 });
 
